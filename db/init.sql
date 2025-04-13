@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS post (
 id SERIAL PRIMARY KEY,
-name text,
-text text,
+title text,
 link text UNIQUE,
-created timestamp);
+description text,
+time timestamp);
