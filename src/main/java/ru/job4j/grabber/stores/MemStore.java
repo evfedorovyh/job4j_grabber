@@ -21,4 +21,9 @@ public class MemStore implements Store {
     public Optional<Post> findById(Long id) {
         return Optional.ofNullable(mem.get(id));
     }
+
+    @Override
+    public void clearAll() {
+
+    }
 }

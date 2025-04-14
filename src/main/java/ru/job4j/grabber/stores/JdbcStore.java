@@ -38,7 +38,8 @@ public class JdbcStore implements Store {
     @Override
     public void save(Post post) {
         try (PreparedStatement statement =
-                     connection.prepareStatement("INSERT INTO post(title, link, description, time) VALUES (?, ?, ?, ?)")) {
+                     connection.prepareStatement("INSERT INTO post(title, link, description, time) VALUES (?, ?, ?, ?)"
+                             + "ON CONFLICT (link) DO NOTHING")) {
             statement.setString(1, post.getTitle());
             statement.setString(2, post.getLink());
             statement.setString(3, post.getDescription());
@@ -86,5 +87,15 @@ public class JdbcStore implements Store {
                 resultSet.getString(3),
                 resultSet.getString(4),
                 resultSet.getTimestamp(5).getTime());
+    }
+
+    @Override
+    public void clearAll() {
+        try (Statement statement =
+                     connection.createStatement()) {
+            statement.executeQuery("DELETE FROM post");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

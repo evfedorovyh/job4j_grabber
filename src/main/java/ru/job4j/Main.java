@@ -1,17 +1,12 @@
 package ru.job4j;
 
 import org.apache.log4j.Logger;
-import ru.job4j.grabber.model.Post;
-import ru.job4j.grabber.service.Config;
-import ru.job4j.grabber.service.HabrCareerParse;
-import ru.job4j.grabber.service.SchedulerManager;
-import ru.job4j.grabber.service.SuperJobGrab;
+import ru.job4j.grabber.service.*;
 import ru.job4j.grabber.stores.JdbcStore;
-import ru.job4j.grabber.utils.HabrCareerDateTimeParser;
+import ru.job4j.grabber.stores.Store;
 
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.List;
 
 public class Main {
     private static final Logger LOGGER = Logger.getLogger(Main.class);
@@ -19,24 +14,20 @@ public class Main {
     public static void main(String[] args) throws Exception {
         var config = new Config();
         config.load("application.properties");
-        Class.forName(config.get("db.driver-class-name"));
         try (var connection = DriverManager.getConnection(config.get("db.url"),
                 config.get("db.username"),
                 config.get("db.password"))) {
-            var store = new JdbcStore(connection);
-            HabrCareerParse parser = new HabrCareerParse(new HabrCareerDateTimeParser());
-            List<Post> listParse = parser.list("https://career.habr.com");
-            for (Post post : listParse) {
-                store.save(post);
-            }
+            Store store = new JdbcStore(connection);
+            new Web(store).start(Integer.parseInt(config.get("server.port")));
             var scheduler = new SchedulerManager();
             scheduler.init();
             scheduler.load(
                     Integer.parseInt(config.get("rabbit.interval")),
                     SuperJobGrab.class,
-                    store);
+                    store
+            );
         } catch (SQLException e) {
-            LOGGER.error("When create a connection", e);
+            LOGGER.error("When creating a connection", e);
         }
     }
 }

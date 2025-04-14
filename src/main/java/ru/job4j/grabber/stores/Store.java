@@ -11,4 +11,6 @@ public interface Store {
     List<Post> getAll();
 
     Optional<Post> findById(Long id);
+
+    void clearAll();
 }
