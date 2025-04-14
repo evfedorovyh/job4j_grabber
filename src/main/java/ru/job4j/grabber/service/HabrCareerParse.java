@@ -2,6 +2,7 @@ package ru.job4j.grabber.service;
 
 import org.apache.log4j.Logger;
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Element;
 import ru.job4j.grabber.model.Post;
 import ru.job4j.grabber.utils.DateTimeParser;
 import ru.job4j.grabber.utils.HabrCareerDateTimeParser;
@@ -10,6 +11,7 @@ import java.io.IOException;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringJoiner;
 
 public class HabrCareerParse implements Parse {
     private static final Logger LOGGER = Logger.getLogger(HabrCareerParse.class);
@@ -41,6 +43,7 @@ public class HabrCareerParse implements Parse {
                     var post = new Post();
                     post.setTitle(vacancyName);
                     post.setLink(link);
+                    post.setDescription(retrieveDescription(link));
                     post.setTime(dateTime);
                     result.add(post);
                 });
@@ -49,5 +52,20 @@ public class HabrCareerParse implements Parse {
             LOGGER.error("When load page", e);
         }
         return result;
+    }
+
+    private String retrieveDescription(String link) {
+        StringJoiner result = new StringJoiner(System.lineSeparator());
+        try {
+            var connection = Jsoup.connect(link);
+            var document = connection.get();
+            var rows = document.select(".vacancy-description__text").first().children();
+            for (Element element : rows) {
+                result.add(element.text());
+            }
+        } catch (IOException e) {
+            LOGGER.error("When load page", e);
+        }
+        return result.toString();
     }
 }
