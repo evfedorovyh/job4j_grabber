@@ -7,6 +7,7 @@ import ru.job4j.grabber.service.HabrCareerParse;
 import ru.job4j.grabber.service.SchedulerManager;
 import ru.job4j.grabber.service.SuperJobGrab;
 import ru.job4j.grabber.stores.JdbcStore;
+import ru.job4j.grabber.utils.HabrCareerDateTimeParser;
 
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -23,16 +24,11 @@ public class Main {
                 config.get("db.username"),
                 config.get("db.password"))) {
             var store = new JdbcStore(connection);
-            HabrCareerParse parser = new HabrCareerParse();
-            List<Post> listParse = parser.fetch();
+            HabrCareerParse parser = new HabrCareerParse(new HabrCareerDateTimeParser());
+            List<Post> listParse = parser.list("https://career.habr.com");
             for (Post post : listParse) {
                 store.save(post);
             }
-/*            var post = new Post();
-            post.setTitle("Super Java Job");
-            post.setTime(System.currentTimeMillis());
-            store.save(post);*/
-
             var scheduler = new SchedulerManager();
             scheduler.init();
             scheduler.load(
